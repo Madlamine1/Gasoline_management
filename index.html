@@ -125,9 +125,12 @@
 /* =========================================================
    CONFIGURATION — à remplir une fois le formulaire déployé
    ========================================================= */
-const KOBO_ASSET_UID = "a4S8z9GWEiRH2HM6AVELQt";        // ex: aXyZ123abc456...
+const KOBO_ASSET_UID = "a4S8z9GWEiRH2HM6AVELQt";
 const KOBO_SERVER = "https://kf.kobotoolbox.org";          // serveur Kobo (par défaut kf.kobotoolbox.org)
-const DATA_URL = `${KOBO_SERVER}/api/v2/assets/${KOBO_ASSET_UID}/data.json`;
+const KOBO_DATA_URL = `${KOBO_SERVER}/api/v2/assets/${KOBO_ASSET_UID}/data.json`;
+// KoboToolbox ne renvoie pas d'en-tête CORS pour les appels JS externes (limitation connue de Kobo,
+// pas un bug côté carte) -> on passe par un relais gratuit qui ajoute cet en-tête.
+const DATA_URL = `https://api.allorigins.win/raw?url=${encodeURIComponent(KOBO_DATA_URL)}`;
 /* Nécessite : formulaire déployé + partage anonyme activé (voir message à l'écran). */
 
 const STATUS_LABELS = {
@@ -139,9 +142,10 @@ const STATUS_ORDER = ["indisponible", "stock_limite", "disponible"]; // pire -> 
 const STATUS_COLOR = { disponible: "#2E7D46", stock_limite: "#C98A1E", indisponible: "#B3402F" };
 
 const map = L.map('map', {zoomControl:true}).setView([17.0, -3.5], 6); // vue Mali
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 18,
-  attribution: '&copy; OpenStreetMap'
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 19,
+  subdomains: 'abcd',
+  attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
 }).addTo(map);
 
 const legend = L.control({position:'bottomright'});

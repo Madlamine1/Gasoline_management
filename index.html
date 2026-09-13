@@ -130,7 +130,7 @@ const KOBO_SERVER = "https://kf.kobotoolbox.org";          // serveur Kobo (par 
 const KOBO_DATA_URL = `${KOBO_SERVER}/api/v2/assets/${KOBO_ASSET_UID}/data.json`;
 // KoboToolbox ne renvoie pas d'en-tête CORS pour les appels JS externes (limitation connue de Kobo,
 // pas un bug côté carte) -> on passe par un relais gratuit qui ajoute cet en-tête.
-const DATA_URL = `https://api.allorigins.win/raw?url=${encodeURIComponent(KOBO_DATA_URL)}`;
+const DATA_URL = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(KOBO_DATA_URL)}`;
 /* Nécessite : formulaire déployé + partage anonyme activé (voir message à l'écran). */
 
 const STATUS_LABELS = {

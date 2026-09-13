@@ -113,7 +113,6 @@
           Vérifie que le formulaire KoboToolbox est <strong>déployé</strong> et que
           le partage anonyme des données est activé
           (Réglages du projet → Partage → « Les utilisateurs anonymes peuvent voir les soumissions »).
-          Renseigne aussi ton identifiant de projet dans <code>KOBO_ASSET_UID</code> en haut du fichier.
         </p>
       </div>
     </div>
@@ -122,26 +121,20 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
-/* =========================================================
-   CONFIGURATION — à remplir une fois le formulaire déployé
-   ========================================================= */
 const KOBO_ASSET_UID = "a4S8z9GWEiRH2HM6AVELQt";
-const KOBO_SERVER = "https://kf.kobotoolbox.org";          // serveur Kobo (par défaut kf.kobotoolbox.org)
+const KOBO_SERVER = "https://kf.kobotoolbox.org";
 const KOBO_DATA_URL = `${KOBO_SERVER}/api/v2/assets/${KOBO_ASSET_UID}/data.json`;
-// KoboToolbox ne renvoie pas d'en-tête CORS pour les appels JS externes (limitation connue de Kobo,
-// pas un bug côté carte) -> on passe par un relais gratuit qui ajoute cet en-tête.
 const DATA_URL = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(KOBO_DATA_URL)}`;
-/* Nécessite : formulaire déployé + partage anonyme activé (voir message à l'écran). */
 
 const STATUS_LABELS = {
   disponible: "Disponible",
   stock_limite: "Stock limité",
   indisponible: "Indisponible"
 };
-const STATUS_ORDER = ["indisponible", "stock_limite", "disponible"]; // pire -> meilleur, pour le statut global
+const STATUS_ORDER = ["indisponible", "stock_limite", "disponible"];
 const STATUS_COLOR = { disponible: "#2E7D46", stock_limite: "#C98A1E", indisponible: "#B3402F" };
 
-const map = L.map('map', {zoomControl:true}).setView([17.0, -3.5], 6); // vue Mali
+const map = L.map('map', {zoomControl:true}).setView([17.0, -3.5], 6);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   maxZoom: 19,
   subdomains: 'abcd',
@@ -234,7 +227,6 @@ function applyFilters(){
   const cercle = document.getElementById('f-cercle').value;
   const commune = document.getElementById('f-commune').value;
 
-  // recalculer les options de cercle/commune en fonction de la région choisie
   const scoped = allStations.filter(s => !region || s.region_label === region);
   populateSelect(document.getElementById('f-cercle'), uniqueSorted(scoped.map(s=>s.cercle)), "Tous les cercles");
   const scoped2 = scoped.filter(s => !cercle || s.cercle === cercle);
@@ -252,7 +244,6 @@ function applyFilters(){
   document.getElementById(id).addEventListener('change', applyFilters)
 );
 
-// Correspondance code région Kobo -> libellé lisible (doit correspondre à choices.region_mali du XLSForm)
 const REGION_LABELS = {
   kayes:"Kayes", koulikoro:"Koulikoro", sikasso:"Sikasso", segou:"Ségou", mopti:"Mopti",
   tombouctou:"Tombouctou", gao:"Gao", kidal:"Kidal", taoudenit:"Taoudénit", menaka:"Ménaka",

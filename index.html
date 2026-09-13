@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carburant Mali — Carte des stations</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<style>
+  :root{
+    --bg:#F5F4F0;
+    --ink:#1A1D1B;
+    --muted:#5B615C;
+    --line:#D9D6CD;
+    --panel:#FFFFFF;
+    --brand:#1E3A34;
+    --dispo:#2E7D46;
+    --limite:#C98A1E;
+    --indispo:#B3402F;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  #app{display:flex;flex-direction:column;height:100%;}
+
+  header{
+    background:var(--brand);
+    color:#F5F4F0;
+    padding:14px 18px;
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  header h1{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:0.2px;}
+  header span.tag{font-size:0.8rem;color:#C9D6CE;}
+
+  #filters{
+    display:flex;
+    gap:8px;
+    padding:10px 14px;
+    background:var(--panel);
+    border-bottom:1px solid var(--line);
+    flex-wrap:wrap;
+  }
+  #filters select{
+    flex:1 1 140px;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:#fff;
+    color:var(--ink);
+    font-size:0.9rem;
+  }
+  #status-line{
+    padding:6px 14px;
+    font-size:0.78rem;
+    color:var(--muted);
+    background:var(--panel);
+    border-bottom:1px solid var(--line);
+  }
+
+  #map{flex:1 1 auto;min-height:0;}
+
+  .legend{
+    background:var(--panel);
+    padding:8px 10px;
+    border-radius:8px;
+    box-shadow:0 1px 4px rgba(0,0,0,0.15);
+    font-size:0.78rem;
+    line-height:1.6;
+  }
+  .legend .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;}
+
+  .popup h3{margin:0 0 6px;font-size:0.95rem;}
+  .popup .row{display:flex;justify-content:space-between;gap:10px;font-size:0.85rem;margin:2px 0;}
+  .pill{padding:1px 8px;border-radius:10px;font-size:0.78rem;color:#fff;white-space:nowrap;}
+  .pill.dispo{background:var(--dispo);}
+  .pill.limite{background:var(--limite);}
+  .pill.indispo{background:var(--indispo);}
+  .popup .meta{margin-top:6px;font-size:0.78rem;color:var(--muted);}
+
+  #empty{
+    position:absolute;inset:0;display:none;
+    align-items:center;justify-content:center;
+    background:rgba(245,244,240,0.96);
+    text-align:center;padding:30px;
+  }
+  #empty div{max-width:420px;}
+  #empty h2{font-size:1rem;margin-bottom:8px;}
+  #empty p{font-size:0.85rem;color:var(--muted);line-height:1.5;}
+  code{background:#EDEBE3;padding:1px 5px;border-radius:4px;font-size:0.82rem;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Carburant Mali</h1>
+    <span class="tag">Statut essence · gasoil · pétrole par station</span>
+  </header>
+
+  <div id="filters">
+    <select id="f-region"><option value="">Toutes les régions</option></select>
+    <select id="f-cercle"><option value="">Tous les cercles</option></select>
+    <select id="f-commune"><option value="">Toutes les communes / quartiers</option></select>
+  </div>
+
+  <div id="status-line">Chargement des stations…</div>
+
+  <div id="map" style="position:relative;">
+    <div id="empty">
+      <div>
+        <h2>Aucune donnée trouvée</h2>
+        <p>
+          Vérifie que le formulaire KoboToolbox est <strong>déployé</strong> et que
+          le partage anonyme des données est activé
+          (Réglages du projet → Partage → « Les utilisateurs anonymes peuvent voir les soumissions »).
+          Renseigne aussi ton identifiant de projet dans <code>KOBO_ASSET_UID</code> en haut du fichier.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+/* =========================================================
+   CONFIGURATION — à remplir une fois le formulaire déployé
+   ========================================================= */
+const KOBO_ASSET_UID = "a4S8z9GWEiRH2HM6AVELQt";        // ex: aXyZ123abc456...
+const KOBO_SERVER = "https://kf.kobotoolbox.org";          // serveur Kobo (par défaut kf.kobotoolbox.org)
+const DATA_URL = `${KOBO_SERVER}/api/v2/assets/${KOBO_ASSET_UID}/data.json`;
+/* Nécessite : formulaire déployé + partage anonyme activé (voir message à l'écran). */
+
+const STATUS_LABELS = {
+  disponible: "Disponible",
+  stock_limite: "Stock limité",
+  indisponible: "Indisponible"
+};
+const STATUS_ORDER = ["indisponible", "stock_limite", "disponible"]; // pire -> meilleur, pour le statut global
+const STATUS_COLOR = { disponible: "#2E7D46", stock_limite: "#C98A1E", indisponible: "#B3402F" };
+
+const map = L.map('map', {zoomControl:true}).setView([17.0, -3.5], 6); // vue Mali
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 18,
+  attribution: '&copy; OpenStreetMap'
+}).addTo(map);
+
+const legend = L.control({position:'bottomright'});
+legend.onAdd = function(){
+  const div = L.DomUtil.create('div','legend');
+  div.innerHTML = `
+    <div><span class="dot" style="background:${STATUS_COLOR.disponible}"></span>Disponible</div>
+    <div><span class="dot" style="background:${STATUS_COLOR.stock_limite}"></span>Stock limité</div>
+    <div><span class="dot" style="background:${STATUS_COLOR.indisponible}"></span>Indisponible</div>`;
+  return div;
+};
+legend.addTo(map);
+
+let allStations = [];
+let markers = [];
+
+function worstStatus(s){
+  const statuses = [s.statut_essence, s.statut_gasoil, s.statut_petrole].filter(Boolean);
+  for (const level of STATUS_ORDER) if (statuses.includes(level)) return level;
+  return "indisponible";
+}
+
+function makeIcon(status){
+  const color = STATUS_COLOR[status] || "#888";
+  return L.divIcon({
+    className: "",
+    html: `<div style="width:16px;height:16px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 3px rgba(0,0,0,0.5);"></div>`,
+    iconSize: [16,16],
+    iconAnchor: [8,8],
+    popupAnchor: [0,-8]
+  });
+}
+
+function pillHtml(status){
+  const cls = status === "disponible" ? "dispo" : status === "stock_limite" ? "limite" : "indispo";
+  return `<span class="pill ${cls}">${STATUS_LABELS[status] || "—"}</span>`;
+}
+
+function popupHtml(s){
+  return `
+    <div class="popup">
+      <h3>${s.nom_station || "Station"}</h3>
+      <div class="row"><span>Essence</span>${pillHtml(s.statut_essence)}</div>
+      <div class="row"><span>Gasoil</span>${pillHtml(s.statut_gasoil)}</div>
+      <div class="row"><span>Pétrole</span>${pillHtml(s.statut_petrole)}</div>
+      <div class="meta">${s.commune_quartier || ""}, ${s.cercle || ""}, ${s.region || ""}</div>
+      ${s.telephone_gerant ? `<div class="meta">Tél gérant : ${s.telephone_gerant}</div>` : ""}
+    </div>`;
+}
+
+function clearMarkers(){
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+}
+
+function renderMarkers(stations){
+  clearMarkers();
+  stations.forEach(s => {
+    if (!s._lat || !s._lng) return;
+    const marker = L.marker([s._lat, s._lng], { icon: makeIcon(worstStatus(s)) });
+    marker.bindPopup(popupHtml(s));
+    marker.addTo(map);
+    markers.push(marker);
+  });
+  document.getElementById('status-line').textContent =
+    `${stations.length} station(s) affichée(s) sur ${allStations.length} au total`;
+}
+
+function uniqueSorted(list){
+  return [...new Set(list.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
+}
+
+function populateSelect(select, values, placeholder){
+  const current = select.value;
+  select.innerHTML = `<option value="">${placeholder}</option>`;
+  values.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    select.appendChild(opt);
+  });
+  if (values.includes(current)) select.value = current;
+}
+
+function applyFilters(){
+  const region = document.getElementById('f-region').value;
+  const cercle = document.getElementById('f-cercle').value;
+  const commune = document.getElementById('f-commune').value;
+
+  // recalculer les options de cercle/commune en fonction de la région choisie
+  const scoped = allStations.filter(s => !region || s.region_label === region);
+  populateSelect(document.getElementById('f-cercle'), uniqueSorted(scoped.map(s=>s.cercle)), "Tous les cercles");
+  const scoped2 = scoped.filter(s => !cercle || s.cercle === cercle);
+  populateSelect(document.getElementById('f-commune'), uniqueSorted(scoped2.map(s=>s.commune_quartier)), "Toutes les communes / quartiers");
+
+  const filtered = allStations.filter(s =>
+    (!region || s.region_label === region) &&
+    (!cercle || s.cercle === cercle) &&
+    (!commune || s.commune_quartier === commune)
+  );
+  renderMarkers(filtered);
+}
+
+['f-region','f-cercle','f-commune'].forEach(id =>
+  document.getElementById(id).addEventListener('change', applyFilters)
+);
+
+// Correspondance code région Kobo -> libellé lisible (doit correspondre à choices.region_mali du XLSForm)
+const REGION_LABELS = {
+  kayes:"Kayes", koulikoro:"Koulikoro", sikasso:"Sikasso", segou:"Ségou", mopti:"Mopti",
+  tombouctou:"Tombouctou", gao:"Gao", kidal:"Kidal", taoudenit:"Taoudénit", menaka:"Ménaka",
+  bougouni:"Bougouni", dioila:"Dioïla", nioro:"Nioro", koutiala:"Koutiala", kita:"Kita",
+  nara:"Nara", bandiagara:"Bandiagara", san:"San", douentza:"Douentza", de_bamako:"District de Bamako"
+};
+
+async function loadData(){
+  try{
+    const res = await fetch(DATA_URL, { headers: { "Accept": "application/json" } });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+    const results = json.results || [];
+
+    allStations = results.map(r => {
+      const gps = (r.position_gps || "").split(" ");
+      return {
+        nom_station: r.nom_station,
+        region_code: r.region,
+        region_label: REGION_LABELS[r.region] || r.region,
+        cercle: r.cercle,
+        commune_quartier: r.commune_quartier,
+        statut_essence: r.statut_essence,
+        statut_gasoil: r.statut_gasoil,
+        statut_petrole: r.statut_petrole,
+        telephone_gerant: r.telephone_gerant,
+        _lat: gps[0] ? parseFloat(gps[0]) : null,
+        _lng: gps[1] ? parseFloat(gps[1]) : null,
+      };
+    }).map(s => ({...s, region: s.region_label}));
+
+    if (allStations.length === 0){
+      document.getElementById('empty').style.display = 'flex';
+      document.getElementById('status-line').textContent = "0 station trouvée.";
+      return;
+    }
+
+    populateSelect(document.getElementById('f-region'), uniqueSorted(allStations.map(s=>s.region_label)), "Toutes les régions");
+    renderMarkers(allStations);
+  } catch(err){
+    console.error(err);
+    document.getElementById('empty').style.display = 'flex';
+    document.getElementById('status-line').textContent = "Impossible de charger les données.";
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>

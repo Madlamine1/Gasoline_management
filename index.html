@@ -40,6 +40,9 @@
   <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1E3A34">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script>
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
+</script>
 </head>
 <body>
 <div id="app">

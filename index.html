@@ -175,6 +175,15 @@ function pillHtml(status){
   const cls = status === "disponible" ? "dispo" : status === "stock_limite" ? "limite" : "indispo";
   return `<span class="pill ${cls}">${STATUS_LABELS[status] || "—"}</span>`;
 }
+  function tempsEcoule(dateStr){
+  if (!dateStr) return "";
+  const diffMin = Math.round((Date.now() - new Date(dateStr).getTime()) / 60000);
+  if (diffMin < 1) return "à l'instant";
+  if (diffMin < 60) return `il y a ${diffMin} min`;
+  const diffH = Math.round(diffMin / 60);
+  if (diffH < 24) return `il y a ${diffH} h`;
+  return `il y a ${Math.round(diffH / 24)} j`;
+}
 
 function popupHtml(s){
   return `
@@ -184,6 +193,7 @@ function popupHtml(s){
       <div class="row"><span>Gasoil</span>${pillHtml(s.statut_gasoil)}</div>
       <div class="row"><span>Pétrole</span>${pillHtml(s.statut_petrole)}</div>
       <div class="meta">${s.commune_quartier || ""}, ${s.cercle || ""}, ${s.region || ""}</div>
+      <div class="meta">Mise à jour ${tempsEcoule(s.submission_time)}</div>
       ${s.telephone_gerant ? `<div class="meta">Tél gérant : ${s.telephone_gerant}</div>` : ""}
     </div>`;
 }
@@ -290,6 +300,7 @@ async function loadData(){
 }
 
 loadData();
+setInterval(loadData, 3 * 60 * 1000); // rafraîchit automatiquement toutes les 3 minutes
 </script>
 </body>
 </html>

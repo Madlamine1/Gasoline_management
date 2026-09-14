@@ -7,69 +7,21 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
 <style>
   :root{
-    --bg:#F5F4F0;
-    --ink:#1A1D1B;
-    --muted:#5B615C;
-    --line:#D9D6CD;
-    --panel:#FFFFFF;
-    --brand:#1E3A34;
-    --dispo:#2E7D46;
-    --limite:#C98A1E;
-    --indispo:#B3402F;
+    --bg:#F5F4F0; --ink:#1A1D1B; --muted:#5B615C; --line:#D9D6CD; --panel:#FFFFFF;
+    --brand:#1E3A34; --dispo:#2E7D46; --limite:#C98A1E; --indispo:#B3402F;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink);}
   #app{display:flex;flex-direction:column;height:100%;}
-
-  header{
-    background:var(--brand);
-    color:#F5F4F0;
-    padding:14px 18px;
-    display:flex;
-    align-items:baseline;
-    gap:10px;
-    flex-wrap:wrap;
-  }
+  header{background:var(--brand);color:#F5F4F0;padding:14px 18px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
   header h1{font-size:1.05rem;font-weight:700;margin:0;letter-spacing:0.2px;}
   header span.tag{font-size:0.8rem;color:#C9D6CE;}
-
-  #filters{
-    display:flex;
-    gap:8px;
-    padding:10px 14px;
-    background:var(--panel);
-    border-bottom:1px solid var(--line);
-    flex-wrap:wrap;
-  }
-  #filters select{
-    flex:1 1 140px;
-    padding:8px 10px;
-    border:1px solid var(--line);
-    border-radius:6px;
-    background:#fff;
-    color:var(--ink);
-    font-size:0.9rem;
-  }
-  #status-line{
-    padding:6px 14px;
-    font-size:0.78rem;
-    color:var(--muted);
-    background:var(--panel);
-    border-bottom:1px solid var(--line);
-  }
-
+  #filters{display:flex;gap:8px;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  #filters select{flex:1 1 140px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font-size:0.9rem;}
+  #status-line{padding:6px 14px;font-size:0.78rem;color:var(--muted);background:var(--panel);border-bottom:1px solid var(--line);}
   #map{flex:1 1 auto;min-height:0;}
-
-  .legend{
-    background:var(--panel);
-    padding:8px 10px;
-    border-radius:8px;
-    box-shadow:0 1px 4px rgba(0,0,0,0.15);
-    font-size:0.78rem;
-    line-height:1.6;
-  }
+  .legend{background:var(--panel);padding:8px 10px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.15);font-size:0.78rem;line-height:1.6;}
   .legend .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;}
-
   .popup h3{margin:0 0 6px;font-size:0.95rem;}
   .popup .row{display:flex;justify-content:space-between;gap:10px;font-size:0.85rem;margin:2px 0;}
   .pill{padding:1px 8px;border-radius:10px;font-size:0.78rem;color:#fff;white-space:nowrap;}
@@ -77,13 +29,9 @@
   .pill.limite{background:var(--limite);}
   .pill.indispo{background:var(--indispo);}
   .popup .meta{margin-top:6px;font-size:0.78rem;color:var(--muted);}
-
-  #empty{
-    position:absolute;inset:0;display:none;
-    align-items:center;justify-content:center;
-    background:rgba(245,244,240,0.96);
-    text-align:center;padding:30px;
-  }
+  .station-pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.5);}
+  .station-pin span{transform:rotate(45deg);font-size:14px;}
+  #empty{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(245,244,240,0.96);text-align:center;padding:30px;}
   #empty div{max-width:420px;}
   #empty h2{font-size:1rem;margin-bottom:8px;}
   #empty p{font-size:0.85rem;color:var(--muted);line-height:1.5;}
@@ -96,24 +44,17 @@
     <h1>Carburant Mali</h1>
     <span class="tag">Statut essence · gasoil · pétrole par station</span>
   </header>
-
   <div id="filters">
     <select id="f-region"><option value="">Toutes les régions</option></select>
     <select id="f-cercle"><option value="">Tous les cercles</option></select>
     <select id="f-commune"><option value="">Toutes les communes / quartiers</option></select>
   </div>
-
   <div id="status-line">Chargement des stations…</div>
-
   <div id="map" style="position:relative;">
     <div id="empty">
       <div>
         <h2>Aucune donnée trouvée</h2>
-        <p>
-          Vérifie que le formulaire KoboToolbox est <strong>déployé</strong> et que
-          le partage anonyme des données est activé
-          (Réglages du projet → Partage → « Les utilisateurs anonymes peuvent voir les soumissions »).
-        </p>
+        <p>Vérifie que le formulaire KoboToolbox est <strong>déployé</strong> et que le partage anonyme des données est activé (Réglages du projet → Partage → « Les utilisateurs anonymes peuvent voir les soumissions »).</p>
       </div>
     </div>
   </div>
@@ -126,11 +67,7 @@ const KOBO_SERVER = "https://kf.kobotoolbox.org";
 const KOBO_DATA_URL = `${KOBO_SERVER}/api/v2/assets/${KOBO_ASSET_UID}/data.json`;
 const DATA_URL = `https://proxyavecclau.lamine0502.workers.dev/?url=${encodeURIComponent(KOBO_DATA_URL)}`;
 
-const STATUS_LABELS = {
-  disponible: "Disponible",
-  stock_limite: "Stock limité",
-  indisponible: "Indisponible"
-};
+const STATUS_LABELS = { disponible: "Disponible", stock_limite: "Stock limité", indisponible: "Indisponible" };
 const STATUS_ORDER = ["indisponible", "stock_limite", "disponible"];
 const STATUS_COLOR = { disponible: "#2E7D46", stock_limite: "#C98A1E", indisponible: "#B3402F" };
 
@@ -160,14 +97,15 @@ function worstStatus(s){
   return "indisponible";
 }
 
+// Icône en forme de pin station-service (pictogramme ⛽), coloré selon le statut
 function makeIcon(status){
   const color = STATUS_COLOR[status] || "#888";
   return L.divIcon({
     className: "",
-    html: `<div style="width:16px;height:16px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 3px rgba(0,0,0,0.5);"></div>`,
-    iconSize: [16,16],
-    iconAnchor: [8,8],
-    popupAnchor: [0,-8]
+    html: `<div class="station-pin" style="background:${color};"><span>⛽</span></div>`,
+    iconSize: [28,28],
+    iconAnchor: [14,26],
+    popupAnchor: [0,-24]
   });
 }
 
@@ -175,8 +113,9 @@ function pillHtml(status){
   const cls = status === "disponible" ? "dispo" : status === "stock_limite" ? "limite" : "indispo";
   return `<span class="pill ${cls}">${STATUS_LABELS[status] || "—"}</span>`;
 }
-  function tempsEcoule(dateStr){
-  if (!dateStr) return "";
+
+function tempsEcoule(dateStr){
+  if (!dateStr) return "date inconnue";
   const diffMin = Math.round((Date.now() - new Date(dateStr).getTime()) / 60000);
   if (diffMin < 1) return "à l'instant";
   if (diffMin < 60) return `il y a ${diffMin} min`;
@@ -188,7 +127,7 @@ function pillHtml(status){
 function popupHtml(s){
   return `
     <div class="popup">
-      <h3>${s.nom_station || "Station"}</h3>
+      <h3>⛽ ${s.nom_station || "Station"}</h3>
       <div class="row"><span>Essence</span>${pillHtml(s.statut_essence)}</div>
       <div class="row"><span>Gasoil</span>${pillHtml(s.statut_gasoil)}</div>
       <div class="row"><span>Pétrole</span>${pillHtml(s.statut_petrole)}</div>
@@ -198,10 +137,7 @@ function popupHtml(s){
     </div>`;
 }
 
-function clearMarkers(){
-  markers.forEach(m => map.removeLayer(m));
-  markers = [];
-}
+function clearMarkers(){ markers.forEach(m => map.removeLayer(m)); markers = []; }
 
 function renderMarkers(stations){
   clearMarkers();
@@ -216,9 +152,7 @@ function renderMarkers(stations){
     `${stations.length} station(s) affichée(s) sur ${allStations.length} au total`;
 }
 
-function uniqueSorted(list){
-  return [...new Set(list.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
-}
+function uniqueSorted(list){ return [...new Set(list.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr')); }
 
 function populateSelect(select, values, placeholder){
   const current = select.value;
@@ -257,8 +191,211 @@ const REGION_LABELS = {
   kayes:"Kayes", koulikoro:"Koulikoro", sikasso:"Sikasso", segou:"Ségou", mopti:"Mopti",
   tombouctou:"Tombouctou", gao:"Gao", kidal:"Kidal", taoudenit:"Taoudénit", menaka:"Ménaka",
   bougouni:"Bougouni", dioila:"Dioïla", nioro:"Nioro", koutiala:"Koutiala", kita:"Kita",
-  nara:"Nara", bandiagara:"Bandiagara", san:"San", douentza:"Douentza", de_bamako:"District de Bamako"
+  nara:"Nara", bandiagara:"Bandiagara", san:"San", douentza:"Douentza",
+  de_bamako:"District de Bamako", bamako:"District de Bamako"
 };
+
+const CERCLE_LABELS = {
+  "kayes": "Kayes",
+  "bafoulabe": "Bafoulabé",
+  "diema": "Diéma",
+  "kenieba": "Kéniéba",
+  "yelimane": "Yélimané",
+  "sadiola": "Sadiola",
+  "aourou": "Aourou",
+  "segala": "Ségala",
+  "oussoubidiagna": "Oussoubidiagna",
+  "ambidedi": "Ambidédi",
+  "bema": "Béma",
+  "diangounte_camara": "Diangounté Camara",
+  "sandare": "Sandaré",
+  "troungoumbe": "Troungoumbé",
+  "kita": "Kita",
+  "sagabari": "Sagabari",
+  "sebekoro": "Sébékoro",
+  "sefeto": "Séféto",
+  "sirakoro": "Sirakoro",
+  "toukoto": "Toukoto",
+  "diamou": "Diamou",
+  "balle": "Ballé",
+  "nara": "Nara",
+  "dilly": "Dilly",
+  "fallou": "Fallou",
+  "guire": "Guiré",
+  "mourdiah": "Mourdiah",
+  "koulikoro": "Koulikoro",
+  "banamba": "Banamba",
+  "kangaba": "Kangaba",
+  "kati": "Kati",
+  "kolokani": "Kolokani",
+  "neguela": "Néguéla",
+  "nyamina": "Nyamina",
+  "siby": "Siby",
+  "ouelessebougou": "Ouélessébougou",
+  "selingue": "Sélingué",
+  "bougouni": "Bougouni",
+  "koumantou": "Koumantou",
+  "fakola": "Fakola",
+  "dogo": "Dogo",
+  "garalo": "Garalo",
+  "kadiana": "Kadiana",
+  "dioila": "Dioïla",
+  "banco": "Banco",
+  "beleko": "Béléko",
+  "fana": "Fana",
+  "massigui": "Massigui",
+  "mena": "Ména",
+  "sikasso": "Sikasso",
+  "kadiolo": "Kadiolo",
+  "yorosso": "Yorosso",
+  "kolondieba": "Kolondiéba",
+  "yanfolila": "Yanfolila",
+  "loulouni": "Loulouni",
+  "danderesso": "Danderesso",
+  "kignan": "Kignan",
+  "klela": "Klela",
+  "lobougoula": "Lobougoula",
+  "niena": "Niéna",
+  "molobala": "Molobala",
+  "koury": "Koury",
+  "farako": "Farako",
+  "koutiala": "Koutiala",
+  "konseguela": "Konséguéla",
+  "kouniana": "Kouniana",
+  "zangasso": "Zangasso",
+  "m_pessoba": "M'Péssoba",
+  "segou": "Ségou",
+  "baroueli": "Barouéli",
+  "bla": "Bla",
+  "niono": "Niono",
+  "tominian": "Tominian",
+  "macina": "Macina",
+  "dioro": "Dioro",
+  "markala": "Markala",
+  "nampala": "Nampala",
+  "sarro": "Sarro",
+  "sokolo": "Sokolo",
+  "san": "San",
+  "fangasso": "Fangasso",
+  "kimparana": "Kimparana",
+  "mandiakuy": "Mandiakuy",
+  "sy": "Sy",
+  "yangasso": "Yangasso",
+  "mopti": "Mopti",
+  "bankass": "Bankass",
+  "youwarou": "Youwarou",
+  "djenne": "Djenné",
+  "koro": "Koro",
+  "tenenkou": "Ténenkou",
+  "konna": "Konna",
+  "korientze": "Korientzé",
+  "toguere_coumbe": "Toguéré-Coumbé",
+  "sofara": "Sofara",
+  "bandiagara": "Bandiagara",
+  "diallassagou": "Diallassagou",
+  "kani": "Kani",
+  "kendie": "Kendié",
+  "sangha": "Sangha",
+  "sokoura": "Sokoura",
+  "ningari": "Ningari",
+  "douentza": "Douentza",
+  "boni": "Boni",
+  "bore": "Boré",
+  "hombori": "Hombori",
+  "mondoro": "Mondoro",
+  "n_gouma": "N'Gouma",
+  "tombouctou": "Tombouctou",
+  "dire": "Diré",
+  "goundam": "Goundam",
+  "gourma_rharous": "Gourma-Rharous",
+  "niafunke": "Niafunké",
+  "bambara_maoude": "Bambara-Maoudé",
+  "ber": "Ber",
+  "bintagoungou": "Bintagoungou",
+  "gossi": "Gossi",
+  "gargando": "Gargando",
+  "lere": "Léré",
+  "sarafere": "Sarafèrè",
+  "tonka": "Tonka",
+  "taoudenit": "Taoudénit",
+  "araouane": "Araouane",
+  "bou_djebeha": "Boû-Djébéha",
+  "foum_elba": "Foum-Elba",
+  "achouratt": "Achouratt",
+  "al_ourche": "Al-Ourche",
+  "gao": "Gao",
+  "ansongo": "Ansongo",
+  "bourem": "Bourem",
+  "bamba": "Bamba",
+  "djebock": "Djébock",
+  "n_tillit": "N'Tillit",
+  "ouattagouna": "Ouattagouna",
+  "tabankort": "Tabankort",
+  "tessit": "Tessit",
+  "gabero": "Gabéro",
+  "menaka": "Ménaka",
+  "anderamboukane": "Anderamboukane",
+  "inekar": "Inékar",
+  "tidermene": "Tidermène",
+  "talataye": "Talataye",
+  "tin_aouker": "Tin Aouker",
+  "kidal": "Kidal",
+  "tin_essako": "Tin-Essako",
+  "abeibara": "Abeïbara",
+  "tessalit": "Tessalit",
+  "soni_aliber": "Soni Aliber",
+  "almoustrat": "Almoustrat",
+  "ersane": "Ersane",
+  "aguel_hoc": "Aguel'hoc",
+  "anefif": "Anéfif",
+  "takalote": "Takalote",
+  "timetrine": "Timétrine",
+  "kassambere": "Kassambéré",
+  "anouzagrene": "Anouzagrène",
+  "achibogho": "Achibogho",
+  "inlamawane": "Inlamawane",
+  "nioro": "Nioro",
+  "1er_arrondissement": "1er Arrondissement",
+  "2e_arrondissement": "2e Arrondissement",
+  "3e_arrondissement": "3e Arrondissement",
+  "4e_arrondissement": "4e Arrondissement",
+  "5e_arrondissement": "5e Arrondissement",
+  "6e_arrondissement": "6e Arrondissement",
+  "7e_arrondissement": "7e Arrondissement",
+};
+
+// Regroupe les soumissions par station : garde les DERNIERS statuts,
+// mais conserve les dernières coordonnées GPS connues même si absentes de la dernière soumission
+function dedupeStations(results){
+  const groups = {};
+  results.forEach(r => {
+    const key = (r.nom_station || "").trim().toLowerCase();
+    if (!key) return;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(r);
+  });
+
+  return Object.values(groups).map(list => {
+    list.sort((a,b) => new Date(a._submission_time) - new Date(b._submission_time));
+    const latest = list[list.length - 1];
+    const withGps = [...list].reverse().find(r => r.position_gps && r.position_gps.trim());
+    const gps = (withGps ? withGps.position_gps : "").split(" ");
+    return {
+      nom_station: latest.nom_station,
+      region_code: latest.region,
+      region_label: REGION_LABELS[latest.region] || latest.region,
+      cercle: CERCLE_LABELS[latest.cercle] || latest.cercle,
+      commune_quartier: latest.commune_quartier,
+      statut_essence: latest.statut_essence,
+      statut_gasoil: latest.statut_gasoil,
+      statut_petrole: latest.statut_petrole,
+      telephone_gerant: latest.telephone_gerant,
+      submission_time: latest._submission_time,
+      _lat: gps[0] ? parseFloat(gps[0]) : null,
+      _lng: gps[1] ? parseFloat(gps[1]) : null,
+    };
+  }).map(s => ({...s, region: s.region_label}));
+}
 
 async function loadData(){
   try{
@@ -267,28 +404,14 @@ async function loadData(){
     const json = await res.json();
     const results = json.results || [];
 
-    allStations = results.map(r => {
-      const gps = (r.position_gps || "").split(" ");
-      return {
-        nom_station: r.nom_station,
-        region_code: r.region,
-        region_label: REGION_LABELS[r.region] || r.region,
-        cercle: r.cercle,
-        commune_quartier: r.commune_quartier,
-        statut_essence: r.statut_essence,
-        statut_gasoil: r.statut_gasoil,
-        statut_petrole: r.statut_petrole,
-        telephone_gerant: r.telephone_gerant,
-        _lat: gps[0] ? parseFloat(gps[0]) : null,
-        _lng: gps[1] ? parseFloat(gps[1]) : null,
-      };
-    }).map(s => ({...s, region: s.region_label}));
+    allStations = dedupeStations(results);
 
     if (allStations.length === 0){
       document.getElementById('empty').style.display = 'flex';
       document.getElementById('status-line').textContent = "0 station trouvée.";
       return;
     }
+    document.getElementById('empty').style.display = 'none';
 
     populateSelect(document.getElementById('f-region'), uniqueSorted(allStations.map(s=>s.region_label)), "Toutes les régions");
     renderMarkers(allStations);
@@ -300,7 +423,9 @@ async function loadData(){
 }
 
 loadData();
-setInterval(loadData, 3 * 60 * 1000); // rafraîchit automatiquement toutes les 3 minutes
+setInterval(loadData, 3 * 60 * 1000);
+
+
 </script>
 </body>
 </html>

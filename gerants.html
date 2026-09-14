@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espace gérant — Carburant Mali</title>
+<style>
+  :root{ --bg:#F5F4F0; --ink:#1A1D1B; --muted:#5B615C; --line:#D9D6CD; --panel:#FFFFFF; --brand:#1E3A34; }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:var(--brand);color:#F5F4F0;padding:14px 18px;}
+  header h1{font-size:1.05rem;margin:0;}
+  header a{color:#C9D6CE;font-size:0.85rem;}
+  main{padding:14px 18px;max-width:640px;margin:0 auto;}
+  input#search{width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;margin-bottom:14px;font-size:0.95rem;}
+  .station{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .station .name{font-weight:600;font-size:0.95rem;}
+  .station .loc{font-size:0.8rem;color:var(--muted);}
+  .station a{background:var(--brand);color:#fff;text-decoration:none;padding:8px 14px;border-radius:6px;font-size:0.85rem;white-space:nowrap;}
+  .new-station{display:block;text-align:center;background:#fff;border:2px dashed var(--line);border-radius:8px;padding:14px;color:var(--brand);text-decoration:none;font-weight:600;margin-top:10px;}
+  #msg{color:var(--muted);font-size:0.85rem;}
+</style>
+</head>
+<body>
+<header>
+  <h1>⛽ Espace gérant</h1>
+  <a href="index.html">← Retour à la carte publique</a>
+</header>
+<main>
+  <p id="msg">Chargement des stations…</p>
+  <input id="search" type="text" placeholder="Rechercher ma station..." style="display:none;">
+  <div id="list"></div>
+  <a class="new-station" id="new-link" href="#">+ Enregistrer une nouvelle station</a>
+</main>
+
+<script>
+const KOBO_ASSET_UID = "a4S8z9GWEiRH2HM6AVELQt";
+const KOBO_SERVER = "https://kf.kobotoolbox.org";
+const KOBO_DATA_URL = `${KOBO_SERVER}/api/v2/assets/${KOBO_ASSET_UID}/data.json`;
+const DATA_URL = `https://proxyavecclau.lamine0502.workers.dev/?url=${encodeURIComponent(KOBO_DATA_URL)}`;
+const FORM_URL = "https://ee.kobotoolbox.org/x/tnguuQA8";
+
+function prefillLink(s){
+  const p = new URLSearchParams();
+  if (s.nom_station) p.set('d[nom_station]', s.nom_station);
+  if (s.region) p.set('d[region]', s.region);
+  if (s.cercle) p.set('d[cercle]', s.cercle);
+  if (s.commune_quartier) p.set('d[commune_quartier]', s.commune_quartier);
+  return `${FORM_URL}?${p.toString()}`;
+}
+
+function dedupe(results){
+  const groups = {};
+  results.forEach(r => {
+    const key = (r.nom_station || "").trim().toLowerCase();
+    if (!key) return;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(r);
+  });
+  return Object.values(groups).map(list => {
+    list.sort((a,b) => new Date(a._submission_time) - new Date(b._submission_time));
+    return list[list.length - 1];
+  });
+}
+
+async function load(){
+  document.getElementById('new-link').href = FORM_URL;
+  try{
+    const res = await fetch(DATA_URL);
+    const json = await res.json();
+    const stations = dedupe(json.results || []).sort((a,b)=>
+      (a.nom_station||"").localeCompare(b.nom_station||"",'fr'));
+
+    if (stations.length === 0){
+      document.getElementById('msg').textContent = "Aucune station enregistrée pour l'instant.";
+      return;
+    }
+    document.getElementById('msg').style.display = 'none';
+    document.getElementById('search').style.display = 'block';
+
+    const list = document.getElementById('list');
+    function render(filter){
+      list.innerHTML = "";
+      stations
+        .filter(s => !filter || (s.nom_station||"").toLowerCase().includes(filter))
+        .forEach(s => {
+          const div = document.createElement('div');
+          div.className = 'station';
+          div.innerHTML = `
+            <div>
+              <div class="name">${s.nom_station}</div>
+              <div class="loc">${s.commune_quartier || ""}, ${s.cercle || ""}</div>
+            </div>
+            <a href="${prefillLink(s)}" target="_blank">Mettre à jour</a>`;
+          list.appendChild(div);
+        });
+    }
+    render("");
+    document.getElementById('search').addEventListener('input', e => render(e.target.value.toLowerCase()));
+  } catch(err){
+    console.error(err);
+    document.getElementById('msg').textContent = "Impossible de charger les stations. Réessaie plus tard.";
+  }
+}
+load();
+</script>
+</body>
+</html>
